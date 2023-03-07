@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	// 打开文件并检查异常
 	if (fseek(fp, 0, SEEK_END)) {
 		perror("fseek");
 		goto err;

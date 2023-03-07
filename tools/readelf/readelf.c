@@ -13,8 +13,8 @@
 int is_elf_format(const void *binary, size_t size) {
 	Elf32_Ehdr *ehdr = (Elf32_Ehdr *)binary;
 	return size >= sizeof(Elf32_Ehdr) && ehdr->e_ident[EI_MAG0] == ELFMAG0 &&
-	       ehdr->e_ident[EI_MAG1] == ELFMAG1 && ehdr->e_ident[EI_MAG2] == ELFMAG2 &&
-	       ehdr->e_ident[EI_MAG3] == ELFMAG3;
+		ehdr->e_ident[EI_MAG1] == ELFMAG1 && ehdr->e_ident[EI_MAG2] == ELFMAG2 &&
+		ehdr->e_ident[EI_MAG3] == ELFMAG3;
 }
 
 /* Overview:
@@ -43,16 +43,28 @@ int readelf(const void *binary, size_t size) {
 	Elf32_Half sh_entry_count;
 	Elf32_Half sh_entry_size;
 	/* Exercise 1.1: Your code here. (1/2) */
-
-	// For each section header, output its index and the section address.
-	// The index should start from 0.
-	for (int i = 0; i < sh_entry_count; i++) {
-		const Elf32_Shdr *shdr;
-		unsigned int addr;
-		/* Exercise 1.1: Your code here. (2/2) */
-
-		printf("%d:0x%x\n", i, addr);
-	}
+	sh_table = binary;
+	sh_table+=16*sizeof(unsigned char);
+	sh_table += 2*sizeof(Elf32_Half);
+	sh_table += sizeof(Elf32_Word);
+	sh_table+=sizeof(Elf32_Addr);
+	sh_table+=sizeof(Elf32_Off);
+	binary+=*(Elf32_Off *)sh_table;
+	sh_table+=sizeof(Elf32_Off);
+	sh_table+=sizeof(Elf32_Word);
+	sh_table+=3*sizeof(Elf32_Half);
+	sh_entry_size=*(Elf32_Half *)sh_table;
+	sh_entry_count=*(Elf32_Half *)(sh_table+sizeof(Elf32_Half));
+		// For each section header, output its index and the section address.
+		// The index should start from 0.
+		for (int i = 0; i < sh_entry_count; i++) {
+			const Elf32_Shdr *shdr;
+			unsigned int addr;
+			/* Exercise 1.1: Your code here. (2/2) */
+			shdr=(Elf32_Shdr*)(binary+i*sh_entry_size);
+			addr=*(unsigned int *)shdr;
+			printf("%d:0x%x\n", i, addr);
+		}
 
 	return 0;
 }
