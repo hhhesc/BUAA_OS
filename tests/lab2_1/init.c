@@ -29,7 +29,7 @@ void physical_memory_manage_strong_check(void) {
 	*temp1 = 1000;
 	// free pp0
 	page_free(pp0);
-	printk("The number in address temp is %d\n", *temp1);
+	//printk("The number in address temp is %d\n", *temp1);
 
 	// alloc again
 	assert(page_alloc(&pp0) == 0);

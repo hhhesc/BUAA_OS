@@ -25,21 +25,24 @@ struct Page {
 extern struct Page *pages;
 extern struct Page_list page_free_list;
 
+//页号，从0计数
 static inline u_long page2ppn(struct Page *pp) {
 	return pp - pages;
 }
-
+//该页开始的物理地址
+//某个Page转换为pages中的某项
 static inline u_long page2pa(struct Page *pp) {
 	return page2ppn(pp) << PGSHIFT;
 }
-
+//地址对应的Page结构体
+//pages中的某项转换为某个Page
 static inline struct Page *pa2page(u_long pa) {
 	if (PPN(pa) >= npage) {
 		panic("pa2page called with invalid pa: %x", pa);
 	}
 	return &pages[PPN(pa)];
 }
-
+//该页开始的内核/虚拟/CPU地址
 static inline u_long page2kva(struct Page *pp) {
 	return KADDR(page2pa(pp));
 }

@@ -7,7 +7,7 @@ LEAF(tlb_out)
 	nop
 	/* Step 1: Use 'tlbp' to probe TLB entry */
 	/* Exercise 2.8: Your code here. (1/2) */
-
+	tlbp
 	nop
 	/* Step 2: Fetch the probe result from CP0.Index */
 	mfc0    t1, CP0_INDEX
@@ -19,13 +19,14 @@ LEAF(tlb_out)
 	nop
 	/* Step 3: Use 'tlbwi' to write CP0.EntryHi/Lo into TLB at CP0.Index  */
 	/* Exercise 2.8: Your code here. (2/2) */
-
+	tlbwi
 .set reorder
 
 NO_SUCH_ENTRY:
 	mtc0    t0, CP0_ENTRYHI
 	j       ra
 END(tlb_out)
+
 
 .data
 tlb_refill_ra:

@@ -22,10 +22,10 @@ struct Page_list page_free_list; /* Free list of physical pages */
 void mips_detect_memory() {
 	/* Step 1: Initialize memsize. */
 	memsize = *(volatile u_int *)(KSEG1 | DEV_MP_ADDRESS | DEV_MP_MEMORY);
-
+	
 	/* Step 2: Calculate the corresponding 'npage' value. */
 	/* Exercise 2.1: Your code here. */
-
+	npage = memsize >> 12;
 	printk("Memory size: %lu KiB, number of pages: %lu\n", memsize / 1024, npage);
 }
 
@@ -90,16 +90,25 @@ void page_init(void) {
 	/* Step 1: Initialize page_free_list. */
 	/* Hint: Use macro `LIST_INIT` defined in include/queue.h. */
 	/* Exercise 2.3: Your code here. (1/4) */
-
+	LIST_HEAD(page_free_list,Page);
+	LIST_INIT(&page_free_list);
 	/* Step 2: Align `freemem` up to multiple of BY2PG. */
 	/* Exercise 2.3: Your code here. (2/4) */
-
+	freemem = ROUND(freemem,BY2PG);
 	/* Step 3: Mark all memory below `freemem` as used (set `pp_ref` to 1) */
 	/* Exercise 2.3: Your code here. (3/4) */
-
+	
 	/* Step 4: Mark the other memory as free. */
 	/* Exercise 2.3: Your code here. (4/4) */
-
+	struct Page * p = pages;
+	for (int i=0;i<npage;i++){
+		if(page2kva(p+i)<freemem){
+			(p+i)->pp_ref = 1;
+		} else {
+			(p+i)->pp_ref = 0;
+			LIST_INSERT_HEAD(&page_free_list,(p+i),pp_link);
+		}
+	}
 }
 
 /* Overview:
@@ -119,13 +128,15 @@ int page_alloc(struct Page **new) {
 	/* Step 1: Get a page from free memory. If fails, return the error code.*/
 	struct Page *pp;
 	/* Exercise 2.4: Your code here. (1/2) */
-
+	if (LIST_EMPTY(&page_free_list)) return -E_NO_MEM;
+	pp = LIST_FIRST(&page_free_list);
 	LIST_REMOVE(pp, pp_link);
 
 	/* Step 2: Initialize this page with zero.
 	 * Hint: use `memset`. */
 	/* Exercise 2.4: Your code here. (2/2) */
-
+	memset(page2kva(pp),0,BY2PG);
+	//bzero(page2kva(pp),BY2PG);
 	*new = pp;
 	return 0;
 }
@@ -140,7 +151,7 @@ void page_free(struct Page *pp) {
 	assert(pp->pp_ref == 0);
 	/* Just insert it into 'page_free_list'. */
 	/* Exercise 2.5: Your code here. */
-
+	LIST_INSERT_HEAD(&page_free_list,pp,pp_link);
 }
 
 /* Overview:
@@ -165,16 +176,27 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 
 	/* Step 1: Get the corresponding page directory entry. */
 	/* Exercise 2.6: Your code here. (1/3) */
-
+	pgdir_entryp = pgdir + PDX(va);
 	/* Step 2: If the corresponding page table is not existent (valid) and parameter `create`
 	 * is set, create one. Set the permission bits 'PTE_D | PTE_V' for this new page in the
 	 * page directory.
 	 * If failed to allocate a new page (out of memory), return the error. */
 	/* Exercise 2.6: Your code here. (2/3) */
-
+	if (!(*pgdir_entryp & PTE_V)){
+		if (creat){
+			if (page_alloc(&pp)==-E_NO_MEM){
+				return -E_NO_MEM;
+			}
+			*pgdir_entryp = page2pa(pp);
+			*pgdir_entryp = (*pgdir_entryp) | PTE_V | PTE_D;
+			pp->pp_ref++;	
+		} else {
+			return NULL;
+		}	
+	} 
 	/* Step 3: Assign the kernel virtual address of the page table entry to '*ppte'. */
 	/* Exercise 2.6: Your code here. (3/3) */
-
+	*ppte = (Pte*) KADDR(PTE_ADDR(*pgdir_entryp)) + PTX(va);
 	return 0;
 }
 
@@ -208,15 +230,18 @@ int page_insert(Pde *pgdir, u_int asid, struct Page *pp, u_long va, u_int perm) 
 
 	/* Step 2: Flush TLB with 'tlb_invalidate'. */
 	/* Exercise 2.7: Your code here. (1/3) */
-
+	tlb_invalidate(asid,va);
 	/* Step 3: Re-get or create the page table entry. */
 	/* If failed to create, return the error. */
 	/* Exercise 2.7: Your code here. (2/3) */
-
+	if (pgdir_walk(pgdir,va,1,&pte)!=0){
+		return -E_NO_MEM;
+	}
 	/* Step 4: Insert the page to the page table entry with 'perm | PTE_V' and increase its
 	 * 'pp_ref'. */
 	/* Exercise 2.7: Your code here. (3/3) */
-
+	*pte = page2pa(pp) | PTE_V | perm;
+	pp->pp_ref++;
 	return 0;
 }
 
@@ -328,7 +353,6 @@ void physical_memory_manage_check(void) {
 	assert(temp == (int *)page2kva(pp0));
 	// pp0 should be zero
 	assert(*temp == 0);
-
 	page_free_list = fl;
 	page_free(pp0);
 	page_free(pp1);
@@ -356,19 +380,21 @@ void physical_memory_manage_check(void) {
 		// printk("ptr: 0x%x v: %d\n",(p->pp_link).le_next,((p->pp_link).le_next)->pp_ref);
 		p = LIST_NEXT(p, pp_link);
 	}
+
+
 	// insert_after test
 	int answer2[] = {0, 1, 2, 3, 4, 20, 5, 6, 7, 8, 9};
 	q = (struct Page *)alloc(sizeof(struct Page), BY2PG, 1);
 	q->pp_ref = 20;
 
-	// printk("---%d\n",test_pages[4].pp_ref);
+	//printk("---%d\n",test_pages[4].pp_ref);
 	LIST_INSERT_AFTER(&test_pages[4], q, pp_link);
-	// printk("---%d\n",LIST_NEXT(&test_pages[4],pp_link)->pp_ref);
+	//printk("---%d\n",LIST_NEXT(&test_pages[4],pp_link)->pp_ref);
 	p = LIST_FIRST(&test_free);
 	j = 0;
-	// printk("into test\n");
+	//printk("into test\n");
 	while (p != NULL) {
-		//      printk("%d %d\n",p->pp_ref,answer2[j]);
+		      printk("%d %d\n",p->pp_ref,answer2[j]);
 		assert(p->pp_ref == answer2[j++]);
 		p = LIST_NEXT(p, pp_link);
 	}
