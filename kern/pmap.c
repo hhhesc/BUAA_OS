@@ -135,7 +135,7 @@ int page_alloc(struct Page **new) {
 	/* Step 2: Initialize this page with zero.
 	 * Hint: use `memset`. */
 	/* Exercise 2.4: Your code here. (2/2) */
-	memset(page2kva(pp),0,BY2PG);
+	memset((char*)page2kva(pp),0,BY2PG);
 	//bzero(page2kva(pp),BY2PG);
 	*new = pp;
 	return 0;
@@ -183,7 +183,7 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 	 * If failed to allocate a new page (out of memory), return the error. */
 	/* Exercise 2.6: Your code here. (2/3) */
 	if (!(*pgdir_entryp & PTE_V)){
-		if (creat){
+		if (create){
 			if (page_alloc(&pp)==-E_NO_MEM){
 				return -E_NO_MEM;
 			}
@@ -191,7 +191,7 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 			*pgdir_entryp = (*pgdir_entryp) | PTE_V | PTE_D;
 			pp->pp_ref++;	
 		} else {
-			return NULL;
+			return 0;
 		}	
 	} 
 	/* Step 3: Assign the kernel virtual address of the page table entry to '*ppte'. */
