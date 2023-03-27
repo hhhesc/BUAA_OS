@@ -16,7 +16,6 @@ void page_strong_check(void) {
 	assert(pp2 && pp2 != pp1 && pp2 != pp0);
 	assert(pp3 && pp3 != pp2 && pp3 != pp1 && pp3 != pp0);
 	assert(pp4 && pp4 != pp3 && pp4 != pp2 && pp4 != pp1 && pp4 != pp0);
-	printk("get here\n");
 
 	// temporarily steal the rest of the free pages
 	fl = page_free_list;
@@ -55,14 +54,10 @@ void page_strong_check(void) {
 	assert(pp2->pp_ref == 1);
 
 	// should not be able to map at PDMAP because need free page for page table
-	printk("here-1");
 	assert(page_insert(boot_pgdir, 0, pp0, PDMAP, 0) < 0);
-	printk("here0");
 	// remove pp1 try again
 	page_remove(boot_pgdir, 0, 0x0);
-	printk("here1");
 	assert(va2pa(boot_pgdir, 0x0) == ~0);
-	printk("here2");
 	assert(page_insert(boot_pgdir, 0, pp0, PDMAP, 0) == 0);
 
 	// insert pp2 at 2*BY2PG (replacing pp2)
@@ -141,8 +136,7 @@ void mips_init() {
 	mips_vm_init();
 	page_init();
 	
-	printk("get here!\n");
-	printk("not get here!\n");
+	page_check();
 	page_strong_check();
 	halt();
 }

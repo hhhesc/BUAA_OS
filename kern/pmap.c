@@ -182,7 +182,7 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 	 * page directory.
 	 * If failed to allocate a new page (out of memory), return the error. */
 	/* Exercise 2.6: Your code here. (2/3) */
-	if (!(*pgdir_entryp & PTE_V)){
+	if (!((*pgdir_entryp) & PTE_V)){
 		if (create){
 			if (page_alloc(&pp)==-E_NO_MEM){
 				return -E_NO_MEM;
@@ -191,6 +191,7 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 			*pgdir_entryp = (*pgdir_entryp) | PTE_V | PTE_D;
 			pp->pp_ref++;	
 		} else {
+			*ppte = 0;
 			return 0;
 		}	
 	} 
