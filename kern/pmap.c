@@ -514,7 +514,7 @@ void page_check(void) {
 }
 
 u_int page_perm_stat(Pde *pgdir,struct Page* pp,u_int perm_mask){
-	int cnt=0;
+	u_int cnt=0;
 	for (int i=0;i<1024;i++){
 		if (!((*(pgdir+i)) & PTE_V)){
 			continue;
