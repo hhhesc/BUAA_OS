@@ -516,16 +516,15 @@ void page_check(void) {
 u_int page_perm_stat(Pde *pgdir,struct Page* pp,u_int perm_mask){
 	u_int cnt=0;
 	for (int i=0;i<1024;i++){
-		if (!((*(pgdir+i)) & PTE_V)){
-			continue;
-		}
-		Pte* ppte=(Pte*) KADDR(PTE_ADDR(*(pgdir+i)));
-		for (int j=0;j<1024;j++){
-			Pte pte=*(ppte+j); 
-			if((pte & PTE_V)!=0){
-				if ((PTE_ADDR(pte)==page2pa(pp))&&(((perm_mask&pte)!=0)||(perm_mask==0))){
-					cnt++;
-				}	
+		if (((*(pgdir+i)) & PTE_V)!=0){
+			Pte* ppte=(Pte*) KADDR(PTE_ADDR((*(pgdir+i))));
+			for (int j=0;j<1024;j++){
+				Pte pte=*(ppte+j); 
+				if((pte & PTE_V)!=0){
+					if ((PTE_ADDR(pte)==page2pa(pp))&&(((perm_mask & pte)!=0)||(perm_mask==0))){
+						cnt++;
+					}	
+				}
 			}
 		}
 	}
