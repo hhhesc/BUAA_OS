@@ -521,7 +521,7 @@ u_int page_perm_stat(Pde *pgdir,struct Page* pp,u_int perm_mask){
 			Pte* ppte=(Pte*) KADDR(PTE_ADDR((pde)));
 			for (Pte* ppted=ppte;ppted<ppte+1024;ppted++){
 				Pte pte=*ppted; 
-				if((pte!=0)&&(pte & PTE_V)!=0){
+				if((pte!=0)&&((pte & PTE_V)!=0)){
 					if ((PTE_ADDR(pte)==page2pa(pp))&&(((perm_mask & pte)!=0)||(perm_mask==0))){
 						cnt++;
 					}	
