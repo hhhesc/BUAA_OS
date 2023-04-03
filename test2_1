@@ -1,3 +1,0 @@
-make clean
-make test lab=2_1
-make run

@@ -10,6 +10,7 @@ void test_perm_stat() {
 	u_int perm[4] = {PTE_V | PTE_D, PTE_V | PTE_D | PTE_G, PTE_V | PTE_D | PTE_G,
 			 PTE_V | PTE_G};
 	struct Page *pp;
+	printk("%d",*pgdir & perm[0]);
 
 	assert(page_alloc(&pp) == 0);
 	assert(page_insert(pgdir, 0, pp, va[0], perm[0]) == 0);
