@@ -17,6 +17,6 @@ LEAF(kclock_init)
 	 * Reference: http://gavare.se/gxemul/gxemul-stable/doc/experiments.html#expdevices
 	 */
 	/* Exercise 3.11: Your code here. */
-
+	sw t0,0xb5000100
 	jr      ra
 END(kclock_init)

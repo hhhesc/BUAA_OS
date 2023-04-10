@@ -13,6 +13,10 @@ SECTIONS {
 
 	/* fill in the correct address of the key sections: text, data, bss. */
 	/* Exercise 1.2: Your code here. */
+	. = 0x80000000;
+	.tlb_miss_entry : {
+		*(.text.tlb_miss_entry)
+	}
 	. = 0x80010000;
 	.text : {
 		*(.text)
@@ -26,4 +30,8 @@ SECTIONS {
 	bss_end = .;
 	. = 0x80400000;
 	end = . ;
+	. = 0x80000080;
+	.exc_gen_entry : {
+		*(.text.exc_gen_entry)
+	}
 }
