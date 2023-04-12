@@ -353,14 +353,15 @@ int sys_ipc_recv(u_int dstva) {
 
 	/* Step 2: Set 'curenv->env_ipc_recving' to 1. */
 	/* Exercise 4.8: Your code here. (1/8) */
-
+	curenv->env_ipc_recving=1;
 	/* Step 3: Set the value of 'curenv->env_ipc_dstva'. */
 	/* Exercise 4.8: Your code here. (2/8) */
-
+	curenv->env_ipc_dstva=dstva;
 	/* Step 4: Set the status of 'curenv' to 'ENV_NOT_RUNNABLE' and remove it from
 	 * 'env_sched_list'. */
 	/* Exercise 4.8: Your code here. (3/8) */
-
+	curenv->env_status=ENV_NOT_RUNNABLE;
+	TAILQ_REMOVE(&env_sched_list,curenv,env_sched_link);
 	/* Step 5: Give up the CPU and block until a message is received. */
 	((struct Trapframe *)KSTACKTOP - 1)->regs[2] = 0;
 	schedule(1);
@@ -388,15 +389,22 @@ int sys_ipc_try_send(u_int envid, u_int value, u_int srcva, u_int perm) {
 
 	/* Step 1: Check if 'srcva' is either zero or a legal address. */
 	/* Exercise 4.8: Your code here. (4/8) */
-
+	if (srcva!=0 && is_illegal_va(srcva)){
+		return -E_INVAL;
+	}
 	/* Step 2: Convert 'envid' to 'struct Env *e'. */
 	/* This is the only syscall where the 'envid2env' should be used with 'checkperm' UNSET,
 	 * because the target env is not restricted to 'curenv''s children. */
 	/* Exercise 4.8: Your code here. (5/8) */
-
+	int r=envid2env(envid,&e,0);
+	if(r!=0){
+		return r;
+	}
 	/* Step 3: Check if the target is waiting for a message. */
 	/* Exercise 4.8: Your code here. (6/8) */
-
+	if(e->env_ipc_recving==0){
+		return -E_IPC_NOT_RECV;
+	}
 	/* Step 4: Set the target's ipc fields. */
 	e->env_ipc_value = value;
 	e->env_ipc_from = curenv->env_id;
@@ -406,13 +414,19 @@ int sys_ipc_try_send(u_int envid, u_int value, u_int srcva, u_int perm) {
 	/* Step 5: Set the target's status to 'ENV_RUNNABLE' again and insert it to the tail of
 	 * 'env_sched_list'. */
 	/* Exercise 4.8: Your code here. (7/8) */
-
+	e->env_status=ENV_RUNNABLE;
+	TAILQ_INSERT_TAIL(&env_sched_list,e,env_sched_link);
 	/* Step 6: If 'srcva' is not zero, map the page at 'srcva' in 'curenv' to 'e->env_ipc_dstva'
 	 * in 'e'. */
 	/* Return -E_INVAL if 'srcva' is not zero and not mapped in 'curenv'. */
 	if (srcva != 0) {
 		/* Exercise 4.8: Your code here. (8/8) */
-
+		Pte * pte;
+		p=page_lookup(curenv->env_pgdir,srcva,&pte);	
+		if(p==NULL){
+			return -E_INVAL;
+		}
+		page_insert(e->env_pgdir,e->env_asid,p,e->env_ipc_dstva,perm);
 	}
 	return 0;
 }
@@ -515,7 +529,7 @@ void do_syscall(struct Trapframe *tf) {
 
 	/* Step 1: Add the EPC in 'tf' by a word (size of an instruction). */
 	/* Exercise 4.2: Your code here. (1/4) */
-	tf->cp0_epc++;	
+	tf->cp0_epc+=4;	
 	/* Step 2: Use 'sysno' to get 'func' from 'syscall_table'. */
 	/* Exercise 4.2: Your code here. (2/4) */
 	func=syscall_table[sysno];	
@@ -527,8 +541,8 @@ void do_syscall(struct Trapframe *tf) {
 	/* Step 4: Last 2 args are stored in stack at [$sp + 16 bytes], [$sp + 20 bytes]. */
 	u_int arg4, arg5;
 	/* Exercise 4.2: Your code here. (3/4) */
-	arg4 = *(u_int *) (tf->regs[29]+4);
-	arg5 = *(u_int *) (tf->regs[29]+5);
+	arg4 = *(u_int *) (tf->regs[29]+16);
+	arg5 = *(u_int *) (tf->regs[29]+20);
 	/* Step 5: Invoke 'func' with retrieved arguments and store its return value to $v0 in 'tf'.
 	 */
 	/* Exercise 4.2: Your code here. (4/4) */
