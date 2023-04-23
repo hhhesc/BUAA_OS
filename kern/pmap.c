@@ -76,8 +76,8 @@ void mips_vm_init() {
 	 * physical address `pages` allocated before. For consideration of alignment,
 	 * you should round up the memory size before map. */
 	pages = (struct Page *)alloc(npage * sizeof(struct Page), BY2PG, 1);
-	printk("to memory %x for struct Pages.\n", freemem);
-	printk("pmap.c:\t mips vm init success\n");
+	//printk("to memory %x for struct Pages.\n", freemem);
+	//printk("pmap.c:\t mips vm init success\n");
 }
 
 /* Overview:
@@ -177,6 +177,8 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 	/* Step 1: Get the corresponding page directory entry. */
 	/* Exercise 2.6: Your code here. (1/3) */
 	pgdir_entryp = pgdir + PDX(va);
+	if(pgdir!=0)
+	//printk("in walk,pgdir = %x,va = %x, pgdir_entryp = %x\n",pgdir,va,pgdir_entryp);
 	/* Step 2: If the corresponding page table is not existent (valid) and parameter `create`
 	 * is set, create one. Set the permission bits 'PTE_D | PTE_V' for this new page in the
 	 * page directory.
@@ -197,6 +199,8 @@ static int pgdir_walk(Pde *pgdir, u_long va, int create, Pte **ppte) {
 	} 
 	/* Step 3: Assign the kernel virtual address of the page table entry to '*ppte'. */
 	/* Exercise 2.6: Your code here. (3/3) */
+	if(pgdir!=0)
+	//printk("in walk,pgdir = %x,va = %x, pgdir_entryp = %x\n",pgdir,va,pgdir_entryp);
 	*ppte = (Pte*) KADDR(PTE_ADDR(*pgdir_entryp)) + PTX(va);
 	return 0;
 }

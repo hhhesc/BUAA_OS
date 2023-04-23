@@ -61,6 +61,11 @@ static inline u_long va2pa(Pde *pgdir, u_long va) {
 	return PTE_ADDR(p[PTX(va)]);
 }
 
+static inline u_long my_va2pa(Pde *pgdir,u_long va) {
+	u_long per_res = va2pa(pgdir,va);
+	return per_res + (va & 0xfff);
+}
+
 void mips_detect_memory(void);
 void mips_vm_init(void);
 void mips_init(void);

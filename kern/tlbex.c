@@ -5,7 +5,7 @@ static void passive_alloc(u_int va, Pde *pgdir, u_int asid) {
 	struct Page *p = NULL;
 
 	if (va < UTEMP) {
-		panic("address too low");
+		panic("address too low,%x",va);
 	}
 
 	if (va >= USTACKTOP && va < USTACKTOP + BY2PG) {
@@ -45,7 +45,7 @@ Pte _do_tlb_refill(u_long va, u_int asid) {
 	 }
 
 	/* Exercise 2.9: Your code here. */
-
+	
 	return *pte;
 }
 
@@ -75,7 +75,7 @@ void do_tlb_mod(struct Trapframe *tf) {
 		tf->regs[29] -= sizeof(tf->regs[4]);
 		// Hint: Set 'cp0_epc' in the context 'tf' to 'curenv->env_user_tlb_mod_entry'.
 		/* Exercise 4.11: Your code here. */
-
+		tf->cp0_epc = curenv->env_user_tlb_mod_entry;
 	} else {
 		panic("TLB Mod but no user handler registered");
 	}
