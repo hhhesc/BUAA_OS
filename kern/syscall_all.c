@@ -483,6 +483,17 @@ int sys_cgetc(void) {
  */
 int sys_write_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (1/2) */
+	if (is_illegal_va_range(va,len)){
+		return -E_INVAL;
+	}
+	
+	if (pa >= 0x10000000 && pa+len <= 0x10000020){
+	} else if (pa >= 0x13000000 && pa+len <= 0x13004200){
+	} else if (pa >= 0x15000000 && pa+len <= 0x15000200){
+	} else {
+		return -E_INVAL;
+	}
+	memcpy((void *)(KSEG1+pa),(void*)va,len);
 
 	return 0;
 }
@@ -500,6 +511,19 @@ int sys_write_dev(u_int va, u_int pa, u_int len) {
  */
 int sys_read_dev(u_int va, u_int pa, u_int len) {
 	/* Exercise 5.1: Your code here. (2/2) */
+	if (is_illegal_va_range(va,len)){
+		return -E_INVAL;
+	}
+	if (pa >= 0x10000000 && pa+len <= 0x10000020){
+	} else if (pa >= 0x13000000 && pa+len <= 0x13004200){
+	} else if (pa >= 0x15000000 && pa+len <= 0x15000200){
+	} else {
+		return -E_INVAL;
+	}
+	printk("va=%x,pa=%x\n",va,pa);
+	printk("before:va=%d,expect=%d\n",*(char *)va,*(char*)(KSEG1+pa));
+	memcpy((void *)va,(void*)(KSEG1+pa),len);
+	printk("after:va=%d\n",*(char *)va);
 
 	return 0;
 }
