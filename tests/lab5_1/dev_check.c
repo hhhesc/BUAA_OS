@@ -8,7 +8,6 @@ int main() {
 	char c __attribute__((aligned(4))) = 0;
 	u_int cons = 0x10000000;
 	while (1) {
-		//debugf("c=%d\n",c);
 		if ((r = syscall_read_dev(&c, cons, 1)) != 0) {
 			debugf("syscall_read_dev is bad\n");
 		}
@@ -19,6 +18,7 @@ int main() {
 			buf[i++] = c;
 		}
 	}
+	debugf("out here\n");
 	if (i == 14) {
 		debugf("syscall_read_dev is good\n");
 	}

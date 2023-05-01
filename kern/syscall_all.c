@@ -520,11 +520,7 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	} else {
 		return -E_INVAL;
 	}
-	printk("va=%x,pa=%x\n",va,pa);
-	printk("before:va=%d,expect=%d\n",*(char *)va,*(char*)(KSEG1+pa));
 	memcpy((void *)va,(void*)(KSEG1+pa),len);
-	printk("after:va=%d\n",*(char *)va);
-
 	return 0;
 }
 
