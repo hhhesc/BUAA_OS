@@ -116,8 +116,8 @@ int spawn(char *prog, char **argv) {
 	int r;
 	u_char elfbuf[512];
 	/* Exercise 6.4: Your code here. (1/6) */
-	r = readn(fd,elfbuf,512);
-	if (r!=512){
+	r = readn(fd,elfbuf,sizeof(Elf32_Ehdr));
+	if (r!=sizeof(Elf32_Ehdr)){
 		r = -E_NOT_EXEC;
 		goto err;
 	}
