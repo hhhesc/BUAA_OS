@@ -108,7 +108,7 @@ int spawn(char *prog, char **argv) {
 	int debugmod = 0;
 	if ((fd = open(prog, O_RDONLY)) < 0) {
 		if (debugmod){
-			debugf("return here in fd<0 when open %s\n",prog);
+			debugf("return here for fd<0 when open %s\n",prog);
 		}
 		return fd;
 	}
