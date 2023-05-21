@@ -86,6 +86,7 @@ int parsecmd(char **argv, int *rightpipe) {
 				debugf("syntax error: < not followed by word\n");
 				exit();
 			}
+			debugf("get here in < mode.\n");
 			// Open 't' for reading, dup it onto fd 0, and then close the original fd.
 			/* Exercise 6.5: Your code here. (1/3) */
 			fd = open(t,O_RDONLY);
@@ -102,7 +103,6 @@ int parsecmd(char **argv, int *rightpipe) {
 			fd = open(t,O_WRONLY);
 			dup(fd,1);
 			close(fd);
-
 			break;
 		case '|':;
 			/*
@@ -156,6 +156,7 @@ void runcmd(char *s) {
 	int child = spawn(argv[0], argv);
 	close_all();
 	if (child >= 0) {
+		debugf("spawn %s: %d\n",argv[0], child);
 		wait(child);
 	} else {
 		debugf("spawn %s: %d\n", argv[0], child);

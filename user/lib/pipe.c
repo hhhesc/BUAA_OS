@@ -188,7 +188,7 @@ static int pipe_write(struct Fd *fd, const void *vbuf, u_int n, u_int offset) {
 	//  - If the pipe isn't closed, keep yielding until the buffer isn't full or the
 	//    pipe is closed.
 	/* Exercise 6.1: Your code here. (3/3) */
-	p = (struct pipe*)fd2data(fd);
+	p = (struct Pipe* )fd2data(fd);
 	wbuf = (char *)vbuf;
 	for (i=0;i<n;i++){
 		while (p->p_wpos - p->p_rpos == BY2PIPE){

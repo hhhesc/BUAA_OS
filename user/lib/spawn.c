@@ -105,7 +105,11 @@ int spawn(char *prog, char **argv) {
 	// Step 1: Open the file 'prog' (the path of the program).
 	// Return the error if 'open' fails.
 	int fd;
+	int debugmod = 0;
 	if ((fd = open(prog, O_RDONLY)) < 0) {
+		if (debugmod){
+			debugf("return here in fd<0 when open %s\n",prog);
+		}
 		return fd;
 	}
 
@@ -119,12 +123,18 @@ int spawn(char *prog, char **argv) {
 	r = readn(fd,elfbuf,sizeof(Elf32_Ehdr));
 	if (r!=sizeof(Elf32_Ehdr)){
 		r = -E_NOT_EXEC;
+		if (debugmod){
+			debugf("goto err in 6.4-1\n");
+		}
 		goto err;
 	}
 
 	const Elf32_Ehdr *ehdr = elf_from(elfbuf, sizeof(Elf32_Ehdr));
 	if (!ehdr) {
 		r = -E_NOT_EXEC;
+		if (debugmod){
+			debugf("goto err in !ehdr\n");
+		}
 		goto err;
 	}
 	u_long entrypoint = ehdr->e_entry;
@@ -136,6 +146,9 @@ int spawn(char *prog, char **argv) {
 	child = syscall_exofork();
 	if (child < 0){
 		r = -E_NOT_EXEC;
+		if (debugmod){
+			debugf("goto err for child <0\n");
+		}
 		goto err;
 	}
 
@@ -214,15 +227,24 @@ int spawn(char *prog, char **argv) {
 		debugf("spawn: syscall_set_env_status %x: %d\n", child, r);
 		goto err2;
 	}
+	if (debugmod){
+		debugf("return here normally\n");
+	}
 	return child;
 
 err2:
 	syscall_env_destroy(child);
+	if (debugmod){
+		debugf("return here in err2\n");
+	}
 	return r;
 err1:
 	syscall_env_destroy(child);
 err:
 	close(fd);
+	if (debugmod){
+		debugf("return here in err\n");
+	}
 	return r;
 }
 
