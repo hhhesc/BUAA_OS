@@ -69,7 +69,7 @@ int parsecmd(char **argv, int *rightpipe) {
 	int argc = 0;
 	while (1) {
 		char *t;
-		int fd, r;
+		int fd;
 		int c = gettoken(0, &t);
 		switch (c) {
 		case 0:
@@ -86,17 +86,8 @@ int parsecmd(char **argv, int *rightpipe) {
 				debugf("syntax error: < not followed by word\n");
 				exit();
 			}
-			// Open 't' for reading, dup it onto fd 0, and then close the original fd.
-			/* Exercise 6.5: Your code here. (1/3) */
 			fd = open(t,O_RDONLY);
-			char mybuf[1024];
-			read(fd,mybuf,10);
-			debugf("1:mybuf = %s\n",mybuf);
-			seek(fd,0);
 			dup(fd,0);
-			read(0,mybuf,10);
-			debugf("2:mybuf = %s\n",mybuf);
-			seek(fd,0);
 			close(fd);
 			break;
 		case '>':
@@ -104,30 +95,12 @@ int parsecmd(char **argv, int *rightpipe) {
 				debugf("syntax error: > not followed by word\n");
 				exit();
 			}
-			// Open 't' for writing, dup it onto fd 1, and then close the original fd.
-			/* Exercise 6.5: Your code here. (2/3) */
 			fd = open(t,O_WRONLY);
 			dup(fd,1);
 			close(fd);
 			break;
 		case '|':;
-			/*
-			 * First, allocate a pipe.
-			 * Then fork, set '*rightpipe' to the returned child envid or zero.
-			 * The child runs the right side of the pipe:
-			 * - dup the read end of the pipe onto 0
-			 * - close the read end of the pipe
-			 * - close the write end of the pipe
-			 * - and 'return parsecmd(argv, rightpipe)' again, to parse the rest of the
-			 *   command line.
-			 * The parent runs the left side of the pipe:
-			 * - dup the write end of the pipe onto 1
-			 * - close the write end of the pipe
-			 * - close the read end of the pipe
-			 * - and 'return argc', to execute the left of the pipeline.
-			 */
 			int p[2];
-			/* Exercise 6.5: Your code here. (3/3) */
 			pipe(p);
 			*rightpipe = fork();
 			if (*rightpipe==0){
@@ -142,9 +115,16 @@ int parsecmd(char **argv, int *rightpipe) {
 				return argc;
 			}
 			break;
+		case ';':
+			*rightpipe = fork();
+			if (*rightpipe==0){
+				return parsecmd(argv,rightpipe);
+			} else {
+				return argc;
+			}
+			break;
 		}
 	}
-
 	return argc;
 }
 
@@ -154,7 +134,6 @@ void runcmd(char *s) {
 	char *argv[MAXARGS];
 	int rightpipe = 0;
 	int argc = parsecmd(argv, &rightpipe);
-//	debugf("argc = %d,argv[0] = %s\n",argc,argv[0]);
 	if (argc == 0) {
 		return;
 	}
@@ -163,7 +142,6 @@ void runcmd(char *s) {
 	int child = spawn(argv[0], argv);
 	close_all();
 	if (child >= 0) {
-//		debugf("spawn %s: %d\n",argv[0], child);
 		wait(child);
 	} else {
 		debugf("spawn %s: %d\n", argv[0], child);

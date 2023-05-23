@@ -227,7 +227,7 @@ struct File *create_file(struct File *dirf) {
 			// If the first byte of the file name is null, the 'File' is unused.
 			// Return a pointer to the unused 'File'.
 			/* Exercise 5.5: Your code here. (2/3) */
-			if (f->f_name[0] == NULL){
+			if (!(f->f_name[0])){
 				return f;
 			}
 		}

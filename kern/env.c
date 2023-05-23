@@ -240,7 +240,6 @@ static int env_setup_vm(struct Env *e) {
  *     'env_user_tlb_mod_entry', 'env_runs'
  */
 int env_alloc(struct Env **new, u_int parent_id) {
-	int r;
 	struct Env *e;
 
 	/* Step 1: Get a free Env from 'env_free_list' */

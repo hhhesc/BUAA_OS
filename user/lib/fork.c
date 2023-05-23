@@ -73,7 +73,6 @@ static void __attribute__((noreturn)) cow_entry(struct Trapframe *tf) {
  *     'sys_mem_map' in kernel.
  */
 static void duppage(u_int envid, u_int vpn) {
-	int r;
 	u_int addr = (vpn << PGSHIFT);
 	u_int perm;
 
@@ -124,7 +123,6 @@ static void duppage(u_int envid, u_int vpn) {
  */
 int fork(void) {
 	u_int child;
-	u_int i;
 	extern volatile struct Env *env;
 
 	/* Step 1: Set our TLB Mod user exception entry to 'cow_entry' if not done yet. */
