@@ -121,7 +121,7 @@ int spawn(char *prog, char **argv) {
 	u_char elfbuf[512];
 	/* Exercise 6.4: Your code here. (1/6) */
 	r = readn(fd,elfbuf,sizeof(Elf32_Ehdr));
-	if (r!=sizeof(Elf32_Ehdr)){
+	if (r<0){
 		r = -E_NOT_EXEC;
 		if (debugmod){
 			debugf("goto err in 6.4-1\n");
@@ -157,7 +157,7 @@ int spawn(char *prog, char **argv) {
 	u_int sp;
 	/* Exercise 6.4: Your code here. (3/6) */
 	r = init_stack(child,argv,&sp);
-	if (r!=0){
+	if (r < 0){
 		goto err1;
 	}
 	// Step 5: Load the ELF segments in the file into the child's memory.

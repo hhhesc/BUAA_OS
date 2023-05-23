@@ -1,0 +1,2 @@
+make test lab=6_2 > nul
+make run

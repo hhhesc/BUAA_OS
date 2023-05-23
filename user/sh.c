@@ -89,7 +89,14 @@ int parsecmd(char **argv, int *rightpipe) {
 			// Open 't' for reading, dup it onto fd 0, and then close the original fd.
 			/* Exercise 6.5: Your code here. (1/3) */
 			fd = open(t,O_RDONLY);
+			char mybuf[1024];
+			read(fd,mybuf,10);
+			debugf("1:mybuf = %s\n",mybuf);
+			seek(fd,0);
 			dup(fd,0);
+			read(0,mybuf,10);
+			debugf("2:mybuf = %s\n",mybuf);
+			seek(fd,0);
 			close(fd);
 			break;
 		case '>':
