@@ -65,7 +65,7 @@ int gettoken(char *s, char **p1) {
 
 #define MAXARGS 128
 
-int parsecmd(char **argv, int *rightpipe) {
+int parsecmd(char **argv, int *rightpipe, int *bkstage) {
 	int argc = 0;
 	while (1) {
 		char *t;
@@ -107,7 +107,7 @@ int parsecmd(char **argv, int *rightpipe) {
 				dup(p[0],0);
 				close(p[0]);
 				close(p[1]);
-				return parsecmd(argv,rightpipe);
+				return parsecmd(argv,rightpipe,bkstage);
 			} else {
 				dup(p[1],1);
 				close(p[1]);
@@ -118,7 +118,15 @@ int parsecmd(char **argv, int *rightpipe) {
 		case ';':
 			*rightpipe = fork();
 			if (*rightpipe==0){
-				return parsecmd(argv,rightpipe);
+				return parsecmd(argv,rightpipe,bkstage);
+			} else {
+				return argc;
+			}
+			break;
+		case '&':
+			*bkstage = fork();
+			if (*bkstage==0){
+				return parsecmd(argv,rightpipe,bkstage);
 			} else {
 				return argc;
 			}
@@ -133,7 +141,8 @@ void runcmd(char *s) {
 
 	char *argv[MAXARGS];
 	int rightpipe = 0;
-	int argc = parsecmd(argv, &rightpipe);
+	int bkstage = 0;
+	int argc = parsecmd(argv, &rightpipe, &bkstage);
 	if (argc == 0) {
 		return;
 	}
@@ -141,10 +150,8 @@ void runcmd(char *s) {
 
 	int child = spawn(argv[0], argv);
 	close_all();
-	if (child >= 0) {
+	if (child >= 0 && !bkstage) {
 		wait(child);
-	} else {
-		debugf("spawn %s: %d\n", argv[0], child);
 	}
 	if (rightpipe) {
 		wait(rightpipe);
