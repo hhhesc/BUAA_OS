@@ -153,11 +153,13 @@ void runcmd(char *s) {
 	int rightpipe = 0;
 	int bkstage = 0;
 	int argc = parsecmd(argv, &rightpipe, &bkstage);
+//	debugf("get here\n");
 	if (argc == 0) {
 		return;
 	}
 	argv[argc] = 0;
 
+//	debugf("argv[0]=%s,argv[1]=%s\n",argv[0],argv[1]);
 	int child = spawn(argv[0], argv);
 	close_all();
 	if (child >= 0 && !bkstage) {
@@ -171,24 +173,42 @@ void runcmd(char *s) {
 
 void readline(char *buf, u_int n) {
 	int r;
+	int curpos = 0;
+	char temp;
 	for (int i = 0; i < n; i++) {
-		if ((r = read(0, buf + i, 1)) != 1) {
+		if ((r = read(0, &temp, 1)) != 1) {
 			if (r < 0) {
 				debugf("read error: %d\n", r);
 			}
 			exit();
 		}
-		if (buf[i] == '\b' || buf[i] == 0x7f) {
+		//	debugf("char[%d]=%c\n",i,temp);
+		//debugf("curpos = %d,i = %d\n",curpos,i);
+		for (int j=strlen(buf)-2;j>=i;j--){
+		//	debugf("%c move to %c\n",buf[j],buf[j+1]);
+			buf[j+1] = buf[j];
+		}
+		buf[i] = temp;
+	//	debugf("\nbuf is %s\n",buf);
+		if (temp =='\E'){
+			read(0,&temp,1);
+			read(0,&temp,1);
+			if (temp=='D'){
+				i-=2;
+			} else if (temp=='C'){
+			}
+		}
+		if (temp == '\b' || temp == 0x7f) {
 			if (i > 0) {
 				i -= 2;
 			} else {
 				i = -1;
 			}
-			if (buf[i] != '\b') {
+			if (temp != '\b') {
 				printf("\b");
 			}
 		}
-		if (buf[i] == '\r' || buf[i] == '\n') {
+		if (temp == '\r' || temp == '\n') {
 			buf[i] = 0;
 			return;
 		}

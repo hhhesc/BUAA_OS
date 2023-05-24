@@ -32,6 +32,7 @@ ifeq ($(call lab-ge,6), true)
 			echo.b \
 			halt.b \
 			ls.b \
+			tree.b\
 			sh.b  \
 			cat.b \
 			testpipe.b \

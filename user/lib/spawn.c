@@ -107,10 +107,18 @@ int spawn(char *prog, char **argv) {
 	int fd;
 	int debugmod = 0;
 	if ((fd = open(prog, O_RDONLY)) < 0) {
-		if (debugmod){
-			debugf("return here for fd<0 when open %s\n",prog);
+		char tail[3];
+		tail[0] = '.';
+		tail[1] = 'b';
+		tail[2] = 0;
+		char newstr[512];
+		strcpy(newstr,argv[0]);
+		strcpy(newstr+strlen(newstr),tail);
+		argv[0] = newstr;
+		//debugf("in spawn,argv[0]=%s\n",argv[0]);
+		if ((fd = open(argv[0],O_RDONLY))<0){
+			return fd;
 		}
-		return fd;
 	}
 
 	// Step 2: Read the ELF header (of type 'Elf32_Ehdr') from the file into 'elfbuf' using
