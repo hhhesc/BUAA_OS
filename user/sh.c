@@ -106,6 +106,10 @@ int parsecmd(char **argv, int *rightpipe, int *bkstage) {
 				exit();
 			}
 			fd = open(t,O_WRONLY);
+			if (fd<0){
+				create(t,FTYPE_DIR);
+			}
+			fd = open(t,O_WRONLY);
 			dup(fd,1);
 			close(fd);
 			break;
@@ -175,7 +179,8 @@ void readline(char *buf, u_int n) {
 	int r;
 	int curpos = 0;
 	char temp;
-	for (int i = 0; i < n; i++) {
+	int end = 0;
+	for (int i = 0; i < n; i++,end++) {
 		if ((r = read(0, &temp, 1)) != 1) {
 			if (r < 0) {
 				debugf("read error: %d\n", r);
@@ -184,33 +189,44 @@ void readline(char *buf, u_int n) {
 		}
 		//	debugf("char[%d]=%c\n",i,temp);
 		//debugf("curpos = %d,i = %d\n",curpos,i);
-		for (int j=strlen(buf)-2;j>=i;j--){
-		//	debugf("%c move to %c\n",buf[j],buf[j+1]);
-			buf[j+1] = buf[j];
-		}
-		buf[i] = temp;
-	//	debugf("\nbuf is %s\n",buf);
+//		debugf("\nbuf is %s\ni is %d\n",buf,i);
 		if (temp =='\E'){
 			read(0,&temp,1);
 			read(0,&temp,1);
 			if (temp=='D'){
 				i-=2;
+				end--;
 			} else if (temp=='C'){
+				end--;
 			}
-		}
-		if (temp == '\b' || temp == 0x7f) {
+		} else if (temp == '\b' || temp == 0x7f) {
 			if (i > 0) {
 				i -= 2;
+				end-=2;
 			} else {
 				i = -1;
+				end--;
 			}
 			if (temp != '\b') {
 				printf("\b");
 			}
-		}
-		if (temp == '\r' || temp == '\n') {
-			buf[i] = 0;
+		} else if (temp == '\r' || temp == '\n') {
+			buf[end] = 0;
 			return;
+		} else {
+			printf("\x1b[%dC",end-i-1); //光标移动到行末
+			printf("\x1b[%dD",end+1); 
+			for (int i=0;i<=end;i++){
+				printf(" ");
+			} //删除已经输出的所有内容
+			printf("\x1b[%dD",end+1);//光标移动到行首
+			for (int j=end-1;j>=i;j--){
+				buf[j+1]=buf[j];
+			}
+			buf[i] = temp; //插入输入字符
+			buf[end+1]=0; //截取
+			printf("%s",buf); //重新输出新的字符
+			printf("\x1b[%dD",end-i-1); //光标移动到原来的位置
 		}
 	}
 	debugf("line too long\n");
@@ -230,6 +246,7 @@ void usage(void) {
 int main(int argc, char **argv) {
 	int r;
 	int interactive = iscons(0);
+//	int interactive = 0;
 	int echocmds = 0;
 	debugf("\n:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::\n");
 	debugf("::                                                         ::\n");

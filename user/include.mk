@@ -33,6 +33,8 @@ ifeq ($(call lab-ge,6), true)
 			halt.b \
 			ls.b \
 			tree.b\
+			touch.b\
+			mkdir.b\
 			sh.b  \
 			cat.b \
 			testpipe.b \

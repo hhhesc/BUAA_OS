@@ -274,3 +274,11 @@ int stat(const char *path, struct Stat *stat) {
 	close(fd);
 	return r;
 }
+
+int create(const char *path, u_int f_type) {
+	int r;
+	if ((r = fsipc_create(path,f_type))<0){
+		return r;
+	}
+	return 0;
+}
