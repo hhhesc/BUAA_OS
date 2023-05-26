@@ -277,6 +277,13 @@ int stat(const char *path, struct Stat *stat) {
 
 int create(const char *path, u_int f_type) {
 	int r;
+	if (path[0]!='/'){
+		char newpath[1024];
+		syscall_getcwd(newpath);
+		strcpy(newpath,"/");
+		strcpy(newpath,path);
+		path = newpath;
+	}
 	if ((r = fsipc_create(path,f_type))<0){
 		return r;
 	}

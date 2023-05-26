@@ -1,4 +1,5 @@
 #include <drivers/dev_cons.h>
+#include<stdio.h>
 #include <env.h>
 #include <mmu.h>
 #include <pmap.h>
@@ -275,6 +276,7 @@ int sys_exofork(void) {
 	/* Exercise 4.9: Your code here. (4/4) */
 	e->env_status=ENV_NOT_RUNNABLE;
 	e->env_pri=curenv->env_pri;
+	strcpy(e->env_curdir,curenv->env_curdir);
 	return e->env_id;
 }
 
@@ -524,6 +526,27 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 	return 0;
 }
 
+void sys_chdir(char *path){
+	for (int i=0;i<1024;i++){
+		curenv->env_curdir[i]=0;
+	}
+	struct Env* parent = curenv;
+	strcpy(curenv->env_curdir,path);
+	int r;
+	while(parent->env_parent_id!=0 && parent->env_parent_id!=parent->env_id){
+		r = envid2env(parent->env_parent_id,&parent,0);
+		if (r<0){
+			break;
+		}
+		strcpy(parent->env_curdir,path);
+	}
+}
+
+
+void sys_getcwd(char *path){
+	strcpy(path,curenv->env_curdir);
+}
+
 void *syscall_table[MAX_SYSNO] = {
     [SYS_putchar] = sys_putchar,
     [SYS_print_cons] = sys_print_cons,
@@ -543,6 +566,8 @@ void *syscall_table[MAX_SYSNO] = {
     [SYS_cgetc] = sys_cgetc,
     [SYS_write_dev] = sys_write_dev,
     [SYS_read_dev] = sys_read_dev,
+    [SYS_chdir] = sys_chdir,
+    [SYS_getcwd] = sys_getcwd,
 };
 
 /* Overview:

@@ -74,3 +74,17 @@ int syscall_read_dev(void *va, u_int dev, u_int len) {
 	/* Exercise 5.2: Your code here. (2/2) */
 	return msyscall(SYS_read_dev,va,dev,len);
 }
+
+void syscall_chdir(char *path){
+	if (path[0]!='/'){
+		char newpath[1024];
+		syscall_getcwd(newpath);
+		strcpy(newpath,"/");
+		strcpy(newpath,path);
+		path = newpath;
+	}
+	msyscall(SYS_chdir,path);
+}
+void syscall_getcwd(char *path) {
+	msyscall(SYS_getcwd,path);
+}

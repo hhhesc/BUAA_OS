@@ -217,6 +217,7 @@ static int env_setup_vm(struct Env *e) {
 	/* Step 3: Map its own page table at 'UVPT' with readonly permission.
 	 * As a result, user programs can read its page table through 'UVPT' */
 	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_V;
+	strcpy(e->env_curdir,"/");
 	return 0;
 }
 
@@ -582,4 +583,15 @@ void envid2env_check() {
 	re = envid2env(pe2->env_id, &pe, 1);
 	assert(re == -E_BAD_ENV);
 	printk("envid2env() work well!\n");
+}
+
+void chdir(char *path) {
+	for (int i=0;i<1024;i++){
+		curenv->env_curdir[i]=0;
+	}
+	strcpy(curenv->env_curdir,path);
+}
+
+void getcwd(char *path){
+	strcpy(path,curenv->env_curdir);
 }

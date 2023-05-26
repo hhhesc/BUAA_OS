@@ -39,6 +39,13 @@ int open(const char *path, int mode) {
 
 	// Step 2: Prepare the 'fd' using 'fsipc_open' in fsipc.c.
 	/* Exercise 5.9: Your code here. (2/5) */
+	if (path[0]!='/'){
+		char newpath[1024];
+		syscall_getcwd(newpath);
+		strcpy(newpath,"/");
+		strcpy(newpath,path);
+		path = newpath;
+	}
 	r = fsipc_open(path,mode,fd);
 	if (r!=0){
 		return r;
@@ -256,6 +263,14 @@ int remove(const char *path) {
 	// Call fsipc_remove.
 
 	/* Exercise 5.13: Your code here. */
+
+	if (path[0]!='/'){
+		char newpath[1024];
+		syscall_getcwd(newpath);
+		strcpy(newpath,"/");
+		strcpy(newpath,path);
+		path = newpath;
+	}
 	return fsipc_remove(path);
 }
 

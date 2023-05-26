@@ -57,7 +57,9 @@ int main(int argc, char** argv){
 	ARGEND
 
 	if (argc==0){
-		tree("/",0);
+		char path[1024];
+		syscall_getcwd(path);
+		tree(path,0);
 	} else {
 		for (int i=0;i<argc;i++){
 			tree(argv[i],0);
