@@ -19,52 +19,71 @@
  *   The buffer is modified to turn the spaces after words into zero bytes ('\0'), so that the
  *   returned token is a null-terminated string.
  */
- u_int pcmdn;
- u_int cmdn;
- u_int offset;
+ char* pnextcmd;
 int w_history(char *buf){
 	int fd = open(".history",O_WRONLY);
 	if (fd<0){
 		return fd;
 	}
-	seek(fd,offset);
-	int r = write(fd,buf,strlen(buf));
+	write(fd,buf,strlen(buf));
 	write(fd,"\n",1);
-	offset+=(r+1);
 	//debugf("write in %s\n",buf);
+	((struct Fd*)num2fd(fd))->fd_offset=0;
 	close(fd);
-	cmdn++;
-	pcmdn=cmdn;
+	pnextcmd=0;
 	return 0;
 }
 
-int r_history(char* res){
+int r_history(char* res,u_int back){
 	int i=0;
+	char *beginva;
+	char *endva;
 	int fdnum = open(".history",O_RDONLY);
-	int n=0;
-	char c;
-	memset(res,0,strlen(res));
-	if(cmdn>1){
-		while (n!=pcmdn){
-			read(fdnum,&c,1);
-			while(c!='\n'){
-				read(fdnum,&c,1);
-			}
-			n++;
-		} //读到pcmdn项的头部
-		read(fdnum,&c,1);
-	} else if (cmdn==0){
+	struct Fd *fd =(struct Fd*) num2fd(fdnum);
+	if (pnextcmd==0){
+		beginva = fd2data(fd);
+		endva = beginva+((struct Filefd*)fd)->f_file.f_size;
+		debugf("beginva = %x,endva = %x\n",beginva,endva);
+		pnextcmd = endva;
+	}
+	close(fdnum);
+	if (endva==beginva){
 		return -1;
 	}
-	while(c!='\n'&&c){
-		res[i]=c;
-		read(fdnum,&c,1);
-		i++;
+	if (back) {
+		debugf("back here,p = %x\n",pnextcmd);
+		for (u_int va=beginva;va<=endva;va++){
+			printf("%c",*(char*)va);
+		}
+		printf("\n");
+		while(*pnextcmd==0 || *pnextcmd=='\n'){
+			pnextcmd--; 
+		}
+		while(*pnextcmd!='\n' && pnextcmd>beginva) pnextcmd--;
+		debugf("p = %x\n",pnextcmd);
+		if (*pnextcmd=='\n'){
+			pnextcmd++;
+		}
+		char *p=pnextcmd;
+		while(*p && *p!='\n'){
+			res[i]=*p;
+			p++;
+			i++;
+		}
+		res[i]=0;
+		return 0;
+	} else {
+		while (*pnextcmd=='\n'){
+			pnextcmd++;
+		}
+		while(*pnextcmd && *pnextcmd!='\n'){
+			res[i]=*pnextcmd;
+			pnextcmd++;
+			i++;
+		}
+		res[i]=0;
+		return 0;
 	}
-	seek(fdnum,0);
-	close(fdnum);
-	return 0;
-	
 }
 
 int _gettoken(char *s, char **p1, char **p2) {
@@ -252,27 +271,14 @@ void readline(char *buf, u_int n) {
 				printf("\r");
 				char tempbuf[1024];
 				strcpy(tempbuf,buf);
-				if (pcmdn>0){
-					pcmdn--;
-					r_history(buf);
+				int r = r_history(buf,1);
+				if (r<0){
+					strcpy(buf,tempbuf);
 				}
 				printf("$ %s",buf);
 				end=strlen(buf);
 			} else {
-				printf("\x1b[%dC",end-i-1);
-				printf("\r");
-				for (int i=0;i<=end;i++){
-					printf(" ");
-				}
-				printf("\r");
-				char tempbuf[1024];
-				strcpy(tempbuf,buf);
-				if (pcmdn<cmdn){
-					pcmdn++;
-					r_history(buf);
-				}
-				printf("$ %s",buf);
-				end=strlen(buf);
+				end--;
 			}
 
 		} else if (temp == '\b' || temp == 0x7f) {
