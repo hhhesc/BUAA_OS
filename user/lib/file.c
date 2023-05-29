@@ -36,18 +36,32 @@ int open(const char *path, int mode) {
 	if (r!=0){
 		return r;
 	}
-
-	// Step 2: Prepare the 'fd' using 'fsipc_open' in fsipc.c.
-	/* Exercise 5.9: Your code here. (2/5) */
+	
 	if (path[0]!='/'){
 		char newpath[1024];
 		syscall_getcwd(newpath);
-		if (newpath[1]){
-			strcpy(newpath+strlen(newpath),"/");
+		if (strcmp(path,".")==0){
+		} else if (strcmp(path,"..")==0){
+			debugf("get here\n");
+			if (strcmp(newpath,"/")!=0){
+				for (int j=strlen(newpath)-1;j>=0;j--){
+					if (newpath[j]=='/'){
+						newpath[j]=0;
+						break;
+					}
+				}
+			}
+		} else {
+			if (strcmp(newpath,"/")!=0){
+				strcpy(newpath+strlen(newpath),"/");
+			}
+			strcpy(newpath+strlen(newpath),path);
 		}
-		strcpy(newpath+strlen(newpath),path);
 		path = newpath;
 	}
+
+	// Step 2: Prepare the 'fd' using 'fsipc_open' in fsipc.c.
+	/* Exercise 5.9: Your code here. (2/5) */
 	r = fsipc_open(path,mode,fd);
 	if (r!=0){
 		return r;
@@ -265,16 +279,29 @@ int remove(const char *path) {
 	// Call fsipc_remove.
 
 	/* Exercise 5.13: Your code here. */
-
 	if (path[0]!='/'){
 		char newpath[1024];
 		syscall_getcwd(newpath);
-		if (newpath[1]){			
-			strcpy(newpath+strlen(newpath),"/");
+		if (strcmp(path,".")==0){
+		} else if (strcmp(path,"..")==0){
+			debugf("get here\n");
+			if (strcmp(newpath,"/")!=0){
+				for (int j=strlen(newpath)-1;j>=0;j--){
+					if (newpath[j]=='/'){
+						newpath[j]=0;
+						break;
+					}
+				}
+			}
+		} else {
+			if (strcmp(newpath,"/")!=0){
+				strcpy(newpath+strlen(newpath),"/");
+			}
+			strcpy(newpath+strlen(newpath),path);
 		}
-		strcpy(newpath+strlen(newpath),path);
 		path = newpath;
 	}
+
 	return fsipc_remove(path);
 }
 
@@ -283,3 +310,4 @@ int remove(const char *path) {
 int sync(void) {
 	return fsipc_sync();
 }
+

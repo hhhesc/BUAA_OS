@@ -22,8 +22,9 @@
  u_int pcmdn;
  u_int cmdn;
  u_int offset;
+ u_int curenv_id;
 int w_history(char *buf){
-	int fd = open(".history",O_WRONLY);
+	int fd = open("/.history",O_WRONLY);
 	if (fd<0){
 		return fd;
 	}
@@ -40,7 +41,7 @@ int w_history(char *buf){
 
 int r_history(char* res){
 	int i=0;
-	int fdnum = open(".history",O_RDONLY);
+	int fdnum = open("/.history",O_RDONLY);
 	if (fdnum<0){
 		return fdnum;
 	}
@@ -207,13 +208,24 @@ void runcmd(char *s) {
 	int rightpipe = 0;
 	int bkstage = 0;
 	int argc = parsecmd(argv, &rightpipe, &bkstage);
-//	debugf("get here\n");
 	if (argc == 0) {
 		return;
 	}
+	if (strcmp(argv[0],"cd")==0 || strcmp(argv[0],"cd.b")==0){
+		u_int id = curenv_id;
+		char id2str[100];
+		int idlen = 0;
+		while (id!=0){
+			id2str[idlen] = '0'+id%10;
+			id/=10;
+			idlen++;
+		}
+		id2str[idlen] = 0;
+		argv[argc] = id2str;
+		argc++;
+	}
 	argv[argc] = 0;
 
-//	debugf("argv[0]=%s,argv[1]=%s\n",argv[0],argv[1]);
 	int child = spawn(argv[0], argv);
 	if (child<0){
 		debugf("Cmd fail.\n");
@@ -362,7 +374,8 @@ int main(int argc, char **argv) {
 		usage();
 	}
 	ARGEND
-	create(".history",FTYPE_REG);
+	create("/.history",FTYPE_REG);
+	curenv_id = syscall_getenvid();
 
 	if (argc > 1) {
 		usage();

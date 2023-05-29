@@ -2,7 +2,10 @@
 
 void history(){
 	long n;
-	int fd = open(".history",O_RDONLY);
+	int fd = open("/.history",O_RDONLY);
+	if (fd<0){
+		user_panic("history open fail\n");
+	}
 	char buf[1024];
 	
 	while ((n=read(fd,buf,(long)sizeof buf))>0){
