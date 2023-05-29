@@ -144,7 +144,7 @@ int map_block(u_int blockno) {
 	// Step 2: Alloc a page in permission 'PTE_D' via syscall.
 	// Hint: Use 'diskaddr' for the virtual address.
 	/* Exercise 5.7: Your code here. (2/5) */
-	return syscall_mem_alloc(0,diskaddr(blockno),PTE_V);
+	return syscall_mem_alloc(0,diskaddr(blockno),PTE_D | PTE_V);
 }
 
 // Overview:
@@ -679,8 +679,8 @@ int file_create(char *path, struct File **file) {
 	if (dir_alloc_file(dir, &f) < 0) {
 		return r;
 	}
-
-	strcpy(f->f_name, name);
+	
+	strcpy((char *)f->f_name, name);
 	*file = f;
 	return 0;
 }

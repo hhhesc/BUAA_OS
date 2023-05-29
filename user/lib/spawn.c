@@ -112,7 +112,8 @@ int spawn(char *prog, char **argv) {
 		tail[1] = 'b';
 		tail[2] = 0;
 		char newstr[512];
-		strcpy(newstr,argv[0]);
+		newstr[0] = '/';
+		strcpy(newstr+1,argv[0]);
 		strcpy(newstr+strlen(newstr),tail);
 		argv[0] = newstr;
 		//debugf("in spawn,argv[0]=%s\n",argv[0]);

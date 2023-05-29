@@ -79,8 +79,10 @@ void syscall_chdir(char *path){
 	if (path[0]!='/'){
 		char newpath[1024];
 		syscall_getcwd(newpath);
-		strcpy(newpath,"/");
-		strcpy(newpath,path);
+		if (newpath[1]){
+			strcpy(newpath+strlen(newpath),"/");
+		}
+		strcpy(newpath+strlen(newpath),path);
 		path = newpath;
 	}
 	msyscall(SYS_chdir,path);

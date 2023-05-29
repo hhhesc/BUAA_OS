@@ -280,8 +280,10 @@ int create(const char *path, u_int f_type) {
 	if (path[0]!='/'){
 		char newpath[1024];
 		syscall_getcwd(newpath);
-		strcpy(newpath,"/");
-		strcpy(newpath,path);
+		if (newpath[1]){
+			strcpy(newpath+strlen(newpath),"/");
+		}
+		strcpy(newpath+strlen(newpath),path);
 		path = newpath;
 	}
 	if ((r = fsipc_create(path,f_type))<0){

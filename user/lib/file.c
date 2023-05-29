@@ -42,8 +42,10 @@ int open(const char *path, int mode) {
 	if (path[0]!='/'){
 		char newpath[1024];
 		syscall_getcwd(newpath);
-		strcpy(newpath,"/");
-		strcpy(newpath,path);
+		if (newpath[1]){
+			strcpy(newpath+strlen(newpath),"/");
+		}
+		strcpy(newpath+strlen(newpath),path);
 		path = newpath;
 	}
 	r = fsipc_open(path,mode,fd);
@@ -267,8 +269,10 @@ int remove(const char *path) {
 	if (path[0]!='/'){
 		char newpath[1024];
 		syscall_getcwd(newpath);
-		strcpy(newpath,"/");
-		strcpy(newpath,path);
+		if (newpath[1]){			
+			strcpy(newpath+strlen(newpath),"/");
+		}
+		strcpy(newpath+strlen(newpath),path);
 		path = newpath;
 	}
 	return fsipc_remove(path);

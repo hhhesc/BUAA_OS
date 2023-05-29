@@ -41,6 +41,9 @@ int w_history(char *buf){
 int r_history(char* res){
 	int i=0;
 	int fdnum = open(".history",O_RDONLY);
+	if (fdnum<0){
+		return fdnum;
+	}
 	int n=0;
 	char c;
 	memset(res,0,strlen(res));
@@ -63,8 +66,7 @@ int r_history(char* res){
 	}
 	seek(fdnum,0);
 	close(fdnum);
-	return 0;
-	
+	return 0;	
 }
 
 int _gettoken(char *s, char **p1, char **p2) {
@@ -213,6 +215,9 @@ void runcmd(char *s) {
 
 //	debugf("argv[0]=%s,argv[1]=%s\n",argv[0],argv[1]);
 	int child = spawn(argv[0], argv);
+	if (child<0){
+		debugf("Cmd fail.\n");
+	}
 	close_all();
 	if (child >= 0 && !bkstage) {
 		wait(child);
@@ -288,6 +293,7 @@ void readline(char *buf, u_int n) {
 			printf("$ %s",buf);
 			if (end>i){
 				printf("\x1b[%dD",end-i);
+				
 			}
 			if (temp != '\b') {
 				printf("\b");
@@ -385,7 +391,6 @@ int main(int argc, char **argv) {
 			user_panic("fork: %d", r);
 		}
 		if (r == 0) {
-			debugf("read buf = %s\n",buf);
 			runcmd(buf);
 			exit();
 		} else {
