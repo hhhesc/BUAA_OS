@@ -156,11 +156,7 @@ int parsecmd(char **argv, int *rightpipe, int *bkstage) {
 				debugf("syntax error: > not followed by word\n");
 				exit();
 			}
-			fd = open(t,O_WRONLY);
-			if (fd<0){
-				create(t,FTYPE_DIR);
-			}
-			fd = open(t,O_WRONLY);
+			fd = open(t,O_CREAT | O_WRONLY);
 			dup(fd,1);
 			close(fd);
 			break;

@@ -42,7 +42,6 @@ int open(const char *path, int mode) {
 		syscall_getcwd(newpath);
 		if (strcmp(path,".")==0){
 		} else if (strcmp(path,"..")==0){
-			debugf("get here\n");
 			if (strcmp(newpath,"/")!=0){
 				for (int j=strlen(newpath)-1;j>=0;j--){
 					if (newpath[j]=='/'){
@@ -62,6 +61,13 @@ int open(const char *path, int mode) {
 
 	// Step 2: Prepare the 'fd' using 'fsipc_open' in fsipc.c.
 	/* Exercise 5.9: Your code here. (2/5) */
+	if (mode & O_CREAT) {
+		r = fsipc_create(path,FTYPE_REG);
+		mode ^= O_CREAT;
+		if (r!=0){
+			return r;
+		}
+	} 
 	r = fsipc_open(path,mode,fd);
 	if (r!=0){
 		return r;
