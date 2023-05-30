@@ -61,7 +61,7 @@ int open(const char *path, int mode) {
 
 	// Step 2: Prepare the 'fd' using 'fsipc_open' in fsipc.c.
 	/* Exercise 5.9: Your code here. (2/5) */
-	if (mode & O_CREAT) {
+	if ((mode & O_CREAT) && (fsipc_open(path,mode,fd)<0)) {
 		r = fsipc_create(path,FTYPE_REG);
 		mode ^= O_CREAT;
 		if (r!=0){

@@ -273,6 +273,7 @@ void readline(char *buf, u_int n) {
 				}
 				printf("$ %s",buf);
 				end=strlen(buf);
+				i=end;
 			} else {
 				printf("\x1b[%dC",end-i-1);
 				printf("\r");
@@ -288,6 +289,7 @@ void readline(char *buf, u_int n) {
 				}
 				printf("$ %s",buf);
 				end=strlen(buf);
+				i=end;
 			}
 
 		} else if (temp == '\b' || temp == 0x7f) {
@@ -303,8 +305,8 @@ void readline(char *buf, u_int n) {
 			printf("$ %s",buf);
 			if (end>i){
 				printf("\x1b[%dD",end-i);
-				
 			}
+			printf("\x1b[C");
 			if (temp != '\b') {
 				printf("\b");
 			}
