@@ -176,9 +176,11 @@ int parsecmd(char **argv, int *rightpipe, int *bkstage) {
 				return argc;
 			}
 			break;
-		case ';':
-			*rightpipe = fork();
-			if (*rightpipe==0){
+		case ';':;
+			u_int fork_id = fork();
+			*bkstage = 0;
+			if (fork_id){
+				wait(fork_id);
 				return parsecmd(argv,rightpipe,bkstage);
 			} else {
 				return argc;
@@ -186,7 +188,7 @@ int parsecmd(char **argv, int *rightpipe, int *bkstage) {
 			break;
 		case '&':
 			*bkstage = fork();
-			if (*bkstage==0){
+			if (*bkstage!=0){
 				return parsecmd(argv,rightpipe,bkstage);
 			} else {
 				return argc;

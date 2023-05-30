@@ -380,7 +380,6 @@ void env_free(struct Env *e) {
 	u_int pdeno, pteno, pa;
 
 	/* Hint: Note the environment's demise.*/
-	printk("[%08x] free env %08x\n", curenv ? curenv->env_id : 0, e->env_id);
 
 	/* Hint: Flush all mapped pages in the user portion of the address space */
 	for (pdeno = 0; pdeno < PDX(UTOP); pdeno++) {
@@ -426,7 +425,6 @@ void env_destroy(struct Env *e) {
 	/* Hint: schedule to run a new environment. */
 	if (curenv == e) {
 		curenv = NULL;
-		printk("i am killed ... \n");
 		schedule(1);
 	}
 }
@@ -438,17 +436,14 @@ static inline void pre_env_run(struct Env *e) {
 #ifdef MOS_SCHED_MAX_TICKS
 	static int count = 0;
 	if (count > MOS_SCHED_MAX_TICKS) {
-		printk("%4d: ticks exceeded the limit %d\n", count, MOS_SCHED_MAX_TICKS);
 		halt();
 	}
-	printk("%4d: %08x\n", count, e->env_id);
 	count++;
 #endif
 #ifdef MOS_SCHED_END_PC
 	struct Trapframe *tf = (struct Trapframe *)KSTACKTOP - 1;
 	u_int epc = tf->cp0_epc;
 	if (epc == MOS_SCHED_END_PC) {
-		printk("env %08x reached end pc: 0x%08x, $v0=0x%08x\n", e->env_id, epc,
 		       tf->regs[2]);
 		env_destroy(e);
 		schedule(0);
