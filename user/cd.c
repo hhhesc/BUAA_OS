@@ -22,7 +22,7 @@ void cd(char *path,char *parentid){
 		}
 		path = newpath;
 	}
-	int len = strlen(parentid);
+	u_int len = strlen(parentid);
 	u_int id = 0;
 	for (int i=len-1;i>=0;i--){
 		id*=10;

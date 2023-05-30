@@ -526,15 +526,7 @@ int sys_read_dev(u_int va, u_int pa, u_int len) {
 }
 
 void sys_chdir(char *path,u_int parentid){
-	struct Env* parent;
-	int r = envid2env(parentid,&parent,0);
-	if (r<0){
-		panic("cd fail for getting env from envid\n");
-	}
-	for (int i=0;i<1024;i++){
-		parent->env_curdir[i] = 0;
-	}
-	strcpy(parent->env_curdir,path);
+	chdir(path,parentid);
 }
 
 

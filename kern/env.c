@@ -580,13 +580,22 @@ void envid2env_check() {
 	printk("envid2env() work well!\n");
 }
 
-void chdir(char *path) {
-	for (int i=0;i<1024;i++){
-		curenv->env_curdir[i]=0;
+void chdir(char *path,u_int parentid) {
+	struct Env* e;
+	u_int id = parentid;
+	int r = envid2env(id,&e,0);
+	if (r<0){
+		panic("cd fail for getting env from envid\n");
 	}
-	strcpy(curenv->env_curdir,path);
+	for (int i=0;i<1024;i++){
+		e->env_curdir[i]=0;
+	}
+	strcpy(e->env_curdir,path);
+
+	for (int i=0;i<NENV;i++){
+		if (envs[i].env_parent_id == id && strcmp(path,envs[i].env_curdir)){
+			chdir(path,envs[i].env_id);
+		}
+	}
 }
 
-void getcwd(char *path){
-	strcpy(path,curenv->env_curdir);
-}

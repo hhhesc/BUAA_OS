@@ -1,6 +1,6 @@
 #include<lib.h>
 
-void pwd(){
+void pwd(char *id){
 	char cwd[1024];
 	syscall_getcwd(cwd);
 	printf("%s\n",cwd);
@@ -18,6 +18,6 @@ int main(int argc, char **argv){
 	}
 	ARGEND
 
-	pwd();
+	pwd(argv[0]);
 	return 0;
 }
